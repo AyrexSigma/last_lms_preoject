@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+    <h1>{{ lesson.title }}</h1>
+    <p class="text-muted mb-4">
+        Курс: <a href="{% url 'lessons:course_lessons' lesson.course.pk %}">{{ lesson.course.title }}</a>
+    </p>
+
+    {% if lesson.content %}
+    <div class="bg-light p-4 rounded mb-4">{{ lesson.content|linebreaks }}</div>
+    {% endif %}
+
+    {% if lesson.video_url %}
+    <div class="ratio ratio-16x9 mb-4">
+        <iframe src="{{ lesson.video_url }}" allowfullscreen></iframe>
+    </div>
+    {% endif %}
+
+    {% if lesson.file %}
+    <a href="{{ lesson.file.url }}" class="btn btn-outline-secondary mb-4" download>Завантажити матеріали</a>
+    {% endif %}
+
+    {% for assignment in lesson.assignments.all %}
+    <div class="card my-5 border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Завдання: {{ assignment.title }}</h5>
+        </div>
+        <div class="card-body">
+
+            {{ assignment.description|linebreaks }}
+
+            <p class="mt-3"><strong>Максимум балів:</strong> {{ assignment.max_score }}</p>
+            {% if assignment.due_date %}
+            <p><strong>Дедлайн:</strong> {{ assignment.due_date|date:"d.m.Y H:i" }}</p>
+            {% endif %}
+
+            <!-- ДЛЯ СТУДЕНТА -->
+            {% if user.is_authenticated and user in lesson.course.students.all %}
+                {% if assignment.submissions.all %}
+                    {% for sub in assignment.submissions.all %}
+                        {% if sub.student == user %}
+                            {% if sub.score is not None %}
+                                <div class="alert alert-success mt-3">
+                                    Оцінка: <strong>{{ sub.score }} / {{ assignment.max_score }}</strong>
+                                    {% if sub.feedback %}
+                                    <br><small>{{ sub.feedback }}</small>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning mt-3">
+                                    Завдання здано {{ sub.submitted_at|date:"d.m.Y H:i" }} — очікує перевірки
+                                </div>
+                            {% endif %}
+                            {% with submitted=True %}{% endwith %} {# Просто метка, что уже сдавал #}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% if not submitted %}
+                    <a href="{% url 'lessons:submit_assignment' assignment.pk %}"
+                       class="btn btn-success btn-lg mt-3">
+                       Здати завдання
+                    </a>
+                {% endif %}
+                {% with submitted=False %}{% endwith %} {# Сброс метки #}
+            {% endif %}
+
+            <!-- ДЛЯ ВИКЛАДАЧА / АДМІНА -->
+            {% if user == lesson.course.teacher or user.is_staff %}
+                <hr class="my-4">
+                <h6>Здано робіт: {{ assignment.submissions.count }}</h6>
+                {% for sub in assignment.submissions.all %}
+                <div class="d-flex justify-content-between align-items-center border rounded p-3 mb-2 bg-light">
+                    <div>
+                        <strong>{{ sub.student.get_full_name|default:sub.student.username }}</strong>
+                        <small class="text-muted">— {{ sub.submitted_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                    <div>
+                        <a href="{{ sub.file.url }}" class="btn btn-sm btn-secondary" download>Файл</a>
+                        {% if sub.score is None %}
+                            <a href="{% url 'lessons:grade_submission' sub.pk %}" class="btn btn-sm btn-success ms-2">Оцінити</a>
+                        {% else %}
+                            <span class="badge bg-success ms-2">{{ sub.score }} балів</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+    {% endfor %}
+
+    <a href="{% url 'lessons:course_lessons' lesson.course.pk %}" class="btn btn-outline-primary">
+        ← До списку уроків
+    </a>
+</div>
+{% endblock %}

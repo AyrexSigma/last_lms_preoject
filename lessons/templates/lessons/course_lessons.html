@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} — Уроки{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1>{{ course.title }}</h1>
+    <p class="text-muted">Викладач: {{ course.teacher.get_full_name|default:course.teacher.username }}</p>
+
+    {% if course.lessons.exists %}
+    <div class="list-group">
+        {% for lesson in course.lessons.all %}
+        <a href="{% url 'lessons:lesson_detail' lesson.pk %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ lesson.order|add:1 }}. {{ lesson.title }}</h5>
+            </div>
+            <small class="text-muted">{{ lesson.content|truncatewords:20 }}</small>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">Поки що немає уроків.</p>
+    {% endif %}
+
+    <a href="{% url 'courses:course_list' %}" class="btn btn-secondary mt-4">← Назад до курсів</a>
+</div>
+{% endblock %}

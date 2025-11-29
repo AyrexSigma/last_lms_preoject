@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Мої курси{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-5">Мої курси</h1>
+
+    <!-- Завершенные курсы (100%) -->
+    {% if completed_courses %}
+    <h3 class="mb-4 text-success">Завершені курси</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        {% for course, progress in completed_courses %}
+        <div class="col">
+            <div class="card h-100 border-success shadow">
+                {% if course.image %}
+                <img src="{{ course.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;">
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <div class="progress mb-3" style="height: 30px;">
+                        <div class="progress-bar bg-success fs-5" style="width: 100%">100%</div>
+                    </div>
+                    <a href="{% url 'lessons:download_certificate' course.pk %}" class="btn btn-success btn-lg mt-auto">
+                        Отримати сертифікат (PDF)
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Текущие курсы -->
+    {% if enrolled_courses.exists %}
+    <h3 class="mb-4">Поточні курси</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for course in enrolled_courses %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if course.image %}
+                <img src="{{ course.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;">
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="text-muted small">
+                        Викладач: {{ course.teacher.get_full_name|default:course.teacher.username }}
+                    </p>
+
+                    {% comment %}
+                        ВСЁ СЧИТАЕТСЯ В VIEW, А НЕ В ШАБЛОНЕ!
+                        Мы передаём progress через annotate в view
+                    {% endcomment %}
+
+                    {% with progress=course.progress|default:0 %}
+                    <div class="progress mb-3" style="height: 30px;">
+                        <div class="progress-bar {% if progress == 100 %}bg-success{% else %}bg-primary{% endif %}"
+                             style="width: {{ progress }}%">
+                            {{ progress }}%
+                        </div>
+                    </div>
+
+                    {% if progress == 100 %}
+                    <a href="{% url 'lessons:download_certificate' course.pk %}" class="btn btn-success mt-auto">
+                        Отримати сертифікат
+                    </a>
+                    {% else %}
+                    <a href="{% url 'lessons:course_lessons' course.pk %}" class="btn btn-primary mt-auto">
+                        Продовжити навчання
+                    </a>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        {% if not completed_courses %}
+        <div class="text-center py-5">
+            <p class="text-muted fs-3">Ви ще не записані на жоден курс</p>
+            <a href="{% url 'courses:course_list' %}" class="btn btn-primary btn-lg px-5">Переглянути курси</a>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

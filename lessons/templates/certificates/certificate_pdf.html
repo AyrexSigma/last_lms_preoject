@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+        .certificate { width: 210mm; height: 297mm; margin: 0 auto; background: white;
+                      border: 15px #d4af37 double; padding: 60px; text-align: center;
+                      position: relative; background-image: url('/static/img/certificate-bg.png'); background-size: cover; }
+        .title { font-size: 48px; color: #b8860b; margin: 60px 0 40px; font-weight: bold; }
+        .name { font-size: 56px; color: #1e3d59; margin: 50px 0; font-weight: bold; }
+        .course { font-size: 36px; color: #333; margin: 40px 0; }
+        .date { font-size: 24px; color: #555; margin-top: 80px; }
+        .footer { position: absolute; bottom: 80px; width: 100%; left: 0; font-size: 20px; color: #777; }
+    </style>
+</head>
+<body>
+<div class="certificate">
+    <h1 class="title">СЕРТИФІКАТ</h1>
+    <p>підтверджує, що</p>
+    <div class="name">{{ user.get_full_name|default:user.username }}</div>
+    <p>успішно завершив(ла) курс</p>
+    <div class="course">{{ course.title }}</div>
+    <div class="date">
+        Дата завершення: {{ completion_date|date:"d E Y" }}
+    </div>
+    <div class="footer">LMS — Система управління навчанням</div>
+</div>
+</body>
+</html>

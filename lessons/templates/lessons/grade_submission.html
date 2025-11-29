@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Оцінити завдання{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1>Оцінка для {{ submission.student.get_full_name|default:submission.student.username }}</h1>
+    <p><strong>Завдання:</strong> {{ submission.assignment.title }}</p>
+    <a href="{{ submission.file.url }}" class="btn btn-secondary" download>Завантажити файл студента</a>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Оцінка (макс. {{ submission.assignment.max_score }})</label>
+            <input type="number" name="score" max="{{ submission.assignment.max_score }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label>Відгук</label>
+            <textarea name="feedback" class="form-control" rows="4"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Зберегти оцінку</button>
+    </form>
+</div>
+{% endblock %}

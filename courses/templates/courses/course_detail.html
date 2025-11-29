@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-9">
+            {% if course.image %}
+            <img src="{{ course.image.url }}" class="img-fluid rounded mb-4" style="max-height:400px; object-fit:cover; width:100%;">
+            {% endif %}
+
+            <h1>{{ course.title }}</h1>
+            <p class="text-muted fs-5">
+                Викладач: <strong>{{ course.teacher.get_full_name|default:course.teacher.username }}</strong>
+            </p>
+
+            <div class="my-4 lead">
+                {{ course.description|linebreaks }}
+            </div>
+
+            <hr class="my-5">
+
+            {% if user.is_authenticated and user in course.students.all %}
+                <div class="alert alert-success">
+                    Ви записані на цей курс
+                    <a href="{% url 'courses:unenroll' course.pk %}" class="btn btn-sm btn-outline-danger float-end">Відписатись</a>
+                </div>
+
+                <h3 class="mt-5 mb-4">Уроки курсу</h3>
+                {% if course.lessons.exists %}
+                <div class="list-group mb-5">
+                    {% for lesson in course.lessons.all %}
+                    <a href="{% url 'lessons:lesson_detail' lesson.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ lesson.order|add:1 }}. {{ lesson.title }}</h5>
+                            <small>
+                                {% if lesson.assignments.exists %}Завдань: {{ lesson.assignments.count }}{% endif %}
+                            </small>
+                        </div>
+                        {% if lesson.content %}
+                        <p class="mb-1 text-muted">{{ lesson.content|truncatewords:30 }}</p>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Поки що немає уроків.</p>
+                {% endif %}
+
+            {% else %}
+                {% if user.is_authenticated %}
+                <a href="{% url 'courses:enroll' course.pk %}" class="btn btn-primary btn-lg">Записатись на курс</a>
+                {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg">Увійти, щоб записатись</a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-header">Інформація</div>
+                <div class="card-body">
+                    <p><strong>Студентів:</strong> {{ course.students.count }}</p>
+                    <p><strong>Уроків:</strong> {{ course.lessons.count }}</p>
+                    <p><strong>Створено:</strong> {{ course.created_at|date:"d.m.Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{% url 'courses:course_list' %}" class="btn btn-secondary mt-4">← До всіх курсів</a>
+</div>
+{% endblock %}
